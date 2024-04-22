@@ -16,7 +16,7 @@ resource "random_string" "string" {
 
 #Creating Google project with unique ID and "GCP Project" name
 resource "google_project" "gcpproject" {
-  name            = "GCP Project"
+  name            = "GCP EC Project"
   project_id      = random_string.string.result
   billing_account = data.google_billing_account.acct.id
 }
