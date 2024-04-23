@@ -23,7 +23,7 @@ resource "google_compute_instance_template" "template" {
 
   name           = "my-instance-template"
   machine_type   = "e2-medium"
-  can_ip_forward = false
+  can_ip_forward = true
 
   disk {
     source_image = data.google_compute_image.debian_11.id
@@ -36,10 +36,6 @@ resource "google_compute_instance_template" "template" {
     }
   }
 
-
-  service_account {
-    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
-  }
 }
 #where to add ports
 resource "google_compute_target_pool" "tgpool" {
@@ -51,7 +47,7 @@ resource "google_compute_target_pool" "tgpool" {
 resource "google_compute_instance_group_manager" "gmigm" {
   name = "my-igm"
   zone = "us-central1-f"
-  
+
   version {
     instance_template = google_compute_instance_template.template.id
     name              = "primary"
