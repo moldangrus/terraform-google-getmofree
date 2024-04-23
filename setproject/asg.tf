@@ -21,23 +21,62 @@ resource "google_compute_instance_template" "example_template" {
   network_interface {
     network = google_compute_network.global_vpc.self_link
     access_config {
-      
+
     }
   }
   metadata_startup_script = "echo 'Hello, World!' > index.html"
 }
 # Define the managed instance group
+
+resource "google_compute_instance" "vm" {
+  name         = "vm"
+  machine_type = "n2-standard-2"
+  zone         = "us-central1-a"
+
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+      
+    }
+  }
+  // Local SSD disk
+  scratch_disk {
+    interface = "NVME"
+  }
+
+  network_interface {
+    network = google_compute_network.global_vpc
+
+    access_config {
+      // Ephemeral public IP
+    }
+  }
+
+  metadata = {
+    foo = "bar"
+  }
+
+  metadata_startup_script = "echo hi > /test.txt"
+}
+
 resource "google_compute_instance_group_manager" "example_group" {
   name        = "example-group"
-  base_instance_name = "example-instance"
+  base_instance_name = google_compute_instance.vm.name
   zone        = "us-central1-a"
   target_size = 1
-  instance_template = google_compute_instance_template.example_template.self_link
-  named_port {
+
+ version {
+    instance_template = google_compute_instance_template.example_template.id
+    name              = "primary"
+  }
+named_port {
     name = "http"
     port = 80
   }
 }
+
+
 # Define the HTTP health check
 resource "google_compute_http_health_check" "http_health_check" {
   name               = "http-health-check"
