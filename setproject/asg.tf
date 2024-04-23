@@ -31,6 +31,9 @@ resource "google_compute_instance_template" "template" {
 
   network_interface {
     network = google_compute_network.global_vpc.name
+    access_config {
+      #accesible from int
+    }
   }
 
 
@@ -48,19 +51,7 @@ resource "google_compute_target_pool" "tgpool" {
 resource "google_compute_instance_group_manager" "gmigm" {
   name = "my-igm"
   zone = "us-central1-f"
-#
-#
-#
-#Working on ports
-#
-#
-#
-  named_port {
-    name = "http"
-    port = 80
-  }
-
-
+  
   version {
     instance_template = google_compute_instance_template.template.id
     name              = "primary"
