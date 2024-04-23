@@ -4,3 +4,7 @@ provider "google-beta" {
     zone   = "us-central-a"
   
 }
+provider "google" {
+  project = "ncdygcxaumqqfwlx"
+  region  = "us-central1"
+}
