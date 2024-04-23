@@ -46,7 +46,7 @@ resource "google_compute_instance" "vm" {
   }
 
   network_interface {
-    network = google_compute_network.global_vpc
+    network = google_compute_network.global_vpc.name
 
     access_config {
       // Ephemeral public IP
