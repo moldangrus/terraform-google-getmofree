@@ -24,7 +24,7 @@ resource "google_compute_instance_template" "example_template" {
 
     }
   }
-  metadata_startup_script = file(startup.sh)
+  metadata_startup_script = file("startup.sh")
 }
 # Define the managed instance group
 
