@@ -1,110 +1,90 @@
+resource "google_compute_autoscaler" "default" {
+  provider = google-beta
 
-# Define the firewall rule to allow HTTP traffic
-resource "google_compute_firewall" "http" {
-  name    = "http"
-  network = google_compute_network.global_vpc.name
-  allow {
-    protocol = "tcp"
-    ports    = ["80"]
+  name   = "my-autoscaler"
+  zone   = "us-central1-f"
+  target = google_compute_instance_group_manager.example.id
+
+  autoscaling_policy {
+    max_replicas    = 5
+    min_replicas    = 1
+    cooldown_period = 60
+
+    metric {
+      name                       = "pubsub.googleapis.com/subscription/num_undelivered_messages"
+      filter                     = "resource.type = pubsub_subscription AND resource.label.subscription_id = our-subscription"
+      single_instance_assignment = 65535
+    }
   }
-  source_ranges = ["0.0.0.0/0"]
 }
 
-# Define the instance template
 resource "google_compute_instance_template" "example_template" {
   name        = "example-template"
   machine_type = "n1-standard-1"
   disk {
-    source_image = "ubuntu-2004-lts"
+    source_image = "debian-cloud/debian-11"
     auto_delete  = true
   }
   network_interface {
-    network = google_compute_network.global_vpc.self_link
-    access_config {
-
-    }
+    network = "global_vpc"
+    access_config {}
   }
   metadata_startup_script = file("startup.sh")
 }
-# Define the managed instance group
-
-resource "google_compute_instance" "vm" {
-  name         = "vm"
-  machine_type = "n2-standard-2"
-  zone         = "us-central1-a"
-
-
-  boot_disk {
-    initialize_params {
-      image = "debian-cloud/debian-11"
-      
-    }
-  }
-  // Local SSD disk
-  scratch_disk {
-    interface = "NVME"
-  }
-
-  network_interface {
-    network = google_compute_network.global_vpc.name
-
-    access_config {
-      // Ephemeral public IP
-    }
-  }
-
-  metadata = {
-    foo = "bar"
-  }
-
-  metadata_startup_script = file("startup.sh")
-}
-
 resource "google_compute_instance_group_manager" "example_group" {
   name        = "example-group"
-  base_instance_name = google_compute_instance.vm.name
+  base_instance_name = "example-instance"
   zone        = "us-central1-a"
   target_size = 1
 
- version {
-    instance_template = google_compute_instance_template.example_template.id
-    name              = "primary"
+    version {
+    instance_template  = google_compute_instance_template.example_template.self_link_unique
   }
-named_port {
+  named_port {
     name = "http"
     port = 80
   }
+ }
+
+
+resource "google_compute_target_pool" "example_pool" {
+  name             = "example-pool"
+  region           = "us-central1"
+  health_checks    = ["${google_compute_http_health_check.example.name}"]
 }
-
-
-# Define the HTTP health check
-resource "google_compute_http_health_check" "http_health_check" {
-  name               = "http-health-check"
-  request_path       = "/"
+resource "google_compute_http_health_check" "example" {
+  name               = "example-check"
   check_interval_sec = 1
   timeout_sec        = 1
+  healthy_threshold  = 1
+  unhealthy_threshold = 1
+  port               = 80
 }
-# Define the backend service
-resource "google_compute_backend_service" "backend_service" {
-  name             = "backend-service"
-  protocol         = "HTTP"
-  timeout_sec      = 30
-  port_name        = "http"
-  health_checks    = [google_compute_http_health_check.http_health_check.self_link]
+resource "google_compute_forwarding_rule" "example_forwarding_rule" {
+  name                  = "example-forwarding-rule"
+  target                = google_compute_target_http_proxy.example_proxy.self_link
+  port_range            = "80"
+  ip_protocol           = "TCP"
+  load_balancing_scheme = "EXTERNAL"
 }
-# Define the URL map
-resource "google_compute_url_map" "url_map" {
-  name            = "url-map"
-  default_service = google_compute_backend_service.backend_service.self_link
+resource "google_compute_target_http_proxy" "example_proxy" {
+  name        = "example-proxy"
+  url_map     = google_compute_url_map.example_url_map.self_link
 }
-# Define the target HTTP proxy
-resource "google_compute_target_http_proxy" "http_proxy" {
-  name    = "http-proxy"
-  url_map = google_compute_url_map.url_map.self_link
+resource "google_compute_url_map" "example_url_map" {
+  name            = "example-url-map"
+  default_service = google_compute_backend_service.example_backend_service.self_link
 }
-# Define the global forwarding rule
-resource "google_compute_global_forwarding_rule" "forwarding_rule" {
-  name       = "forwarding-rule"
-  target     = google_compute_target_http_proxy.http_proxy.self_link
-  port_range = "80"
+resource "google_compute_backend_service" "example_backend_service" {
+  name = "example-backend-service"
+  port_name   = "http"
+  protocol    = "HTTP"
+  timeout_sec = 10
+  health_checks = ["${google_compute_http_health_check.example.name}"]
+  backend {
+    group = google_compute_instance_group_manager.example_group.instance_group
+  }
+}
+output "load_balancer_ip" {
+  value = google_compute_forwarding_rule.example_forwarding_rule.ip_address
 }
