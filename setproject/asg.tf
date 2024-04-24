@@ -57,7 +57,7 @@ resource "google_compute_instance" "vm" {
     foo = "bar"
   }
 
-  metadata_startup_script = "echo hi > /test.txt"
+  metadata_startup_script = file("startup.sh")
 }
 
 resource "google_compute_instance_group_manager" "example_group" {
