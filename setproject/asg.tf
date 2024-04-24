@@ -3,7 +3,7 @@ resource "google_compute_autoscaler" "default" {
 
   name   = "my-autoscaler"
   zone   = "us-central1-f"
-  target = google_compute_instance_group_manager.example.id
+  target = google_compute_instance_group_manager.example_group.id
 
   autoscaling_policy {
     max_replicas    = 5
