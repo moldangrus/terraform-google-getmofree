@@ -14,6 +14,7 @@ resource "google_compute_firewall" "http_firewall" {
   }
 
   source_ranges = ["0.0.0.0/0"]  
+  target_tags   = [google_compute_instance.vm.tags]
 }
 
 #Creating VM
