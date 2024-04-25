@@ -38,5 +38,12 @@ resource "google_compute_instance" "vm" {
     }
   }
 
-  metadata_startup_script = file("startup.sh")
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y apache2
+    echo "Hello from my GCP instance" > /var/www/html/index.html
+    systemctl restart apache2
+  EOF
+  
 }
