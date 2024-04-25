@@ -6,7 +6,7 @@ provider "google" {
 #Allowing HTTP
 resource "google_compute_firewall" "http_firewall" {
   name    = "allow-http"
-  network = google_compute_network.default.name
+  network = "default"
 
   allow {
     protocol = "tcp"
@@ -32,7 +32,7 @@ resource "google_compute_instance" "vm" {
   }
 
   network_interface {
-    network = google_compute_network.default.name
+    network = "default"
     access_config {
       // This will create a public IP for the instance
     }
