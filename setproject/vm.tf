@@ -22,6 +22,8 @@ resource "google_compute_instance" "vm" {
   name         = "example-instance"
   machine_type = "n2-standard-2"
   zone         = "us-central1-a"
+  tags = ["http-server"]
+
 
   boot_disk {
     initialize_params {
