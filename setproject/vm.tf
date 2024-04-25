@@ -5,7 +5,7 @@ provider "google" {
 
 resource "google_compute_instance" "vm" {
   name         = "example-instance"
-  machine_type = "n1-standard-1"
+  machine_type = "n2-standard-2"
   zone         = "us-central1-a"
 
   boot_disk {
