@@ -38,5 +38,5 @@ resource "google_compute_instance" "vm" {
     }
   }
 
-  metadata_startup_script = "echo 'Hello Oleksii' > /var/www/html/index.html && sudo systemctl restart apache2"
+  metadata_startup_script = file("startup.sh")
 }
