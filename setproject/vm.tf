@@ -6,7 +6,7 @@ provider "google" {
 #Allowing HTTP
 resource "google_compute_firewall" "http_firewall" {
   name    = "allow-http"
-  network = "global-vpc"
+  network = google_compute_network.global_vpc.name
 
   allow {
     protocol = "tcp"
