@@ -42,7 +42,7 @@ metadata_startup_script = <<-EOF
     echo "Hello from my GCP instance" > /var/www/html/index.html
     systemctl restart apache2
   EOF
-  
+
   metadata = {
     foo = "bar"
   }
@@ -80,8 +80,3 @@ data "google_compute_image" "debian_9" {
   project = "debian-cloud"
 }
 
-provider "google-beta" {
-  region = "us-central1"
-  zone   = "us-central1-a"
-
-}
