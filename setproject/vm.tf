@@ -6,7 +6,7 @@ provider "google" {
 #Allowing HTTP
 resource "google_compute_firewall" "http_firewall" {
   name    = "allow-http"
-  network = "default"
+  network = "global-vpc"
 
   allow {
     protocol = "tcp"
@@ -32,7 +32,7 @@ resource "google_compute_instance" "vm" {
   }
 
   network_interface {
-    network = "default"
+    network = "global-vpc"
     access_config {
       // This will create a public IP for the instance
     }
@@ -45,5 +45,5 @@ resource "google_compute_instance" "vm" {
     echo "Hello from my GCP instance" > /var/www/html/index.html
     systemctl restart apache2
   EOF
-  
+
 }
