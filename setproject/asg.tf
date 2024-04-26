@@ -32,7 +32,7 @@ resource "google_compute_instance_template" "default" {
   }
 
   network_interface {
-    network = "global-vpc"
+    network = google_compute_network.global_vpc.name     #THIS WAS EDITED
   }
 
 metadata_startup_script = <<-EOF
